@@ -24,7 +24,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 LOG_CHAT_ID = -1003671787625       # чат для логов
 
-BASE_APP_URL = "https://aviatorbot.up.railway.app/"
+BASE_APP_URL = "https://aviatorsbot.up.railway.app/"
 
 user_status = {}
 USERS_FILE = "users.json"
