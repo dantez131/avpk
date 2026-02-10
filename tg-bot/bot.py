@@ -70,24 +70,24 @@ def menu_keyboard(user_id: int):
     status = user_status.get(user_id, "new")
 
     buttons = [
-        [InlineKeyboardButton("📖 Istruzioni per il collegamento e il funzionamento", callback_data="instruction")],
-        [InlineKeyboardButton("🤖 Connetti un bot", callback_data="connect")],
-        [InlineKeyboardButton("💸 Prezzo", callback_data="price")],
+        [InlineKeyboardButton("📖 Instructions for connection and using", callback_data="instruction")],
+        [InlineKeyboardButton("🤖 Connect a bot", callback_data="connect")],
+        [InlineKeyboardButton("💸 Price", callback_data="price")],
         [InlineKeyboardButton(
-            "🆘 Fai una domanda",
-            url="https://t.me/Dante_Valdes?text=Ciao!%20Ho%20una%20domanda%20sul%20bot"
+            "🆘 Help",
+            url="https://t.me/Dante_Valdes?text=Hi!%20can%20you%20help%20me%20with%20bot?"
         )],
     ]
 
     if status == "new":
         url = f"{BASE_APP_URL}?screen=noreg"
-        label = "Apri Aviator Predittore"
+        label = "Launch Predictor bot"
     elif status == "registered":
         url = f"{BASE_APP_URL}?screen=nodep"
-        label = "Apri Aviator Predittore"
+        label = "Launch Predictor bot"
     else:  # deposited
         url = BASE_APP_URL
-        label = "🚀 Apri Aviator Predittore"
+        label = "🚀 Launch Predictor bot"
 
     buttons.append([InlineKeyboardButton(label, web_app=WebAppInfo(url=url))])
 
@@ -108,8 +108,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     await update.message.reply_text(
-        "👋 Ciao! Questo è il menu principale del bot.\n"
-        "Tutte le azioni sono disponibili nei pulsanti sottostanti 👇",
+        "👋 Hi! Using the bot guarantees a 40x return in at least 20 minutes.  \n"
+        "Instructions and how to connect to the bot are in the buttons below.👇",
         reply_markup=menu_keyboard(user_id),
     )
 
