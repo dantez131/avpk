@@ -9,7 +9,7 @@ export default function Screen1({ onSuccess }: Screen1Props) {
     <PasswordGate
       onSuccess={onSuccess}
       correctPassword="7300"
-      title="Inserisci la tua password"
+      title="Enter password"
     />
   );
 }
