@@ -137,7 +137,7 @@ async def process_registration(app: Application, user_id: int):
 
     await app.bot.send_message(
         chat_id=user_id,
-        text="✅ AThe bot has detected an account. Make a deposit to activate the bot.\n"
+        text="✅ The bot has detected an account. Make a deposit to activate the bot.\n"
              "$5 minimum. You can deposit any amount, but it must be more than $5.",
         reply_markup=menu_keyboard(user_id),
     )
@@ -206,7 +206,7 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         elif status == "registered":
             text = (
                 "✅ The account was found by a Predictor. Now make a deposit to connect it and start use.\n\n"
-                "👉 [EFFETTUARE UN DEPOSITO](https://gembl.pro/click?o=780&a=1933&sub_id2={user_id}) 👈"
+                "👉 [MAKE A DEPOSIT](https://gembl.pro/click?o=780&a=1933&sub_id2={user_id}) 👈"
             ).format(user_id=user_id)
 
             keyboard = InlineKeyboardMarkup([
@@ -237,7 +237,7 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif data == "created_account":
         await query.edit_message_text(
-            "🔍 The bot is searching for your account, please wait 1-2 minutes. "
+            "🔍 The Predictor is searching for your account, please wait 1-2 minutes. "
             "Once the account is found, you will receive a notification...."
         )
 
@@ -247,7 +247,7 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     elif data == "made_deposit":
         await query.edit_message_text(
-            "🔄 The bot is connecting to your account, please wait 1-3 minutes..."
+            "🔄 The Predictor is connecting to your account, please wait 1-3 minutes..."
         )
 
         await send_log(context.application, f"⏳ Пользователь {user_id} нажал: Я ВНЕС ДЕПОЗИТ")
