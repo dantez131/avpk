@@ -24,7 +24,7 @@ export default function ScreenNoReg() {
           <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 shadow-2xl border border-white/20 w-full max-w-sm">
             <div className="text-center">
               <p className="text-white/90 text-sm font-light leading-tight">
-                Predictor not connected: Complete new account registration
+                The Predictor not connected: Complete new account registration
               </p>
             </div>
           </div>
