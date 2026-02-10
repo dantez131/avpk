@@ -63,7 +63,7 @@ export default function Screen2({ onPrecisionUpgradeClick }: Screen2Props) {
             onClick={generateMultiplier}
             className="mt-8 px-8 py-2 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-black text-lg font-bold rounded-2xl shadow-2xl transform transition-all hover:scale-105 active:scale-95"
           >
-            MOSTRA COEFFICIENTE
+            GET COEFFICIENTE
           </button>
         </div>
       </div>
@@ -72,22 +72,22 @@ export default function Screen2({ onPrecisionUpgradeClick }: Screen2Props) {
         <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 shadow-2xl border border-white/20 w-full max-w-sm">
           <div className="text-center">
             <p className="text-white/90 text-xs font-light leading-tight mb-2">
-              Il bot è connesso e pronto a funzionare. Sincronizzazione attuale dei coefficienti - 45%. Per una sincronizzazione al 100%, immettere una password aggiuntiva
+              The Predictor is connected and ready to use. The current accuracy synchronization - 35%. For 100% synchronization, enter the additional password.
             </p>
             <button
               onClick={onPrecisionUpgradeClick}
               className="w-full px-3 py-1 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-black font-bold rounded-lg shadow-lg transform transition-all hover:scale-105 active:scale-95 text-xs"
             >
-              Aumenta la precisione al 100%
+              Increase accuracy to 100%
             </button>
           </div>
         </div>
 
         <div className="bg-white/10 backdrop-blur-md rounded-xl p-2 shadow-2xl border border-white/20 w-full max-w-sm">
           <p className="text-center text-white/70 text-xs font-light">
-            Se hai qualche domanda -{' '}
+            To get the password, write to -{' '}
             <a
-              href="https://t.me/Dante_Valdes?text=Ciao!%20Ho%20una%20domanda%20sul%20bot"
+              href="https://t.me/Dante_Valdes?text=Hi!%20I%20need%20password%20for%20100%bot"
               target="_blank"
               rel="noopener noreferrer"
               className="text-yellow-400 hover:text-yellow-500 transition-colors"
