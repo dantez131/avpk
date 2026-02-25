@@ -185,67 +185,107 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ===========================
 
 async def postback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if update.effective_chat.id != POSTBACK_CHAT_ID:
-        return
+    message = update.message
+    text = message.text.strip()
 
-    text = update.message.text or ""
+    # ==============================
+    # 🔥 1. ОБРАБОТКА ПУШ КОМАНДЫ
+    # ==============================
+    if text.startswith("ПУШ"):
+        import re
 
-    # ===== PUSH =====
-    push_match = PUSH_PATTERN.search(text)
-    if push_match:
-        ids_raw = push_match.group(1)
-        push_text = push_match.group(2)
+        match = re.search(r"ПУШ\s*\((.*?)\)\s*\"(.*?)\"", text)
+        if not match:
+            await context.bot.send_message(
+                chat_id=LOG_CHAT_ID,
+                text=f"❌ Неверный формат ПУШ:\n{text}"
+            )
+            return
 
-        user_ids = [int(uid.strip()) for uid in ids_raw.split(",") if uid.strip().isdigit()]
+        ids_raw = match.group(1)
+        push_text = match.group(2)
+
+        user_ids = []
+        for uid in ids_raw.split(","):
+            uid = uid.strip()
+            if uid.isdigit():
+                user_ids.append(int(uid))
 
         sent = 0
         failed = 0
 
-        for uid in user_ids:
+        for user_id in user_ids:
             try:
-                await context.application.bot.send_message(
-                    chat_id=uid,
+                await context.bot.send_message(
+                    chat_id=user_id,
                     text=push_text
                 )
                 sent += 1
-            except Exception as e:
+            except:
                 failed += 1
-                await send_log(context.application, f"❌ PUSH ошибка для {uid}: {e}")
 
-        await send_log(
-            context.application,
-            f"🚀 PUSH отправлен: успешно {sent}, ошибок {failed}"
+        await context.bot.send_message(
+            chat_id=LOG_CHAT_ID,
+            text=(
+                f"📢 PUSH выполнен\n"
+                f"Отправлено: {sent}\n"
+                f"Ошибок: {failed}"
+            )
         )
         return
 
-    # ===== REGISTRATION / DEPOSIT =====
-    match = ID_PATTERN.search(text)
+    # ==============================
+    # 🔹 2. ОБЫЧНЫЕ ПОСТБЕКИ
+    # ==============================
+
+    import re
+    match = re.search(r"\d+", text)
+
     if not match:
+        await context.bot.send_message(
+            chat_id=LOG_CHAT_ID,
+            text=f"⚠️ Постбек без понятного ID: {text}"
+        )
         return
 
-    user_id = int(match.group(1))
-    text_lower = text.lower()
+    user_id = int(match.group())
 
-    if "registration" in text_lower:
-        user_status[user_id] = "registered"
-        save_users()
+    users = load_users()
+    user = users.get(str(user_id))
 
-        await context.application.bot.send_message(
-            chat_id=user_id,
-            text="✅ Account rilevato dal bot. Ora effettua un deposito.",
-            reply_markup=menu_keyboard(user_id),
+    if not user:
+        users[str(user_id)] = {
+            "registered": False,
+            "deposits": 0
+        }
+        user = users[str(user_id)]
+
+    # REGISTRATION
+    if "Registration" in text:
+        user["registered"] = True
+        save_users(users)
+
+        await context.bot.send_message(
+            chat_id=LOG_CHAT_ID,
+            text=f"✅ Регистрация: {user_id}"
         )
+        return
 
-    elif "deposit" in text_lower:
-        user_status[user_id] = "deposited"
-        save_users()
+    # DEPOSIT
+    if "Deposit" in text:
+        user["deposits"] += 1
+        save_users(users)
 
-        await context.application.bot.send_message(
-            chat_id=user_id,
-            text="🎉 Deposito ricevuto! Il bot è ora attivo.",
-            reply_markup=menu_keyboard(user_id),
+        await context.bot.send_message(
+            chat_id=LOG_CHAT_ID,
+            text=f"💰 Депозит: {user_id} | Всего: {user['deposits']}"
         )
+        return
 
+    await context.bot.send_message(
+        chat_id=LOG_CHAT_ID,
+        text=f"⚠️ Неизвестный постбек: {text}"
+    )
 # ===========================
 # ЗАПУСК
 # ===========================
