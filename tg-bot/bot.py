@@ -22,19 +22,19 @@ from telegram.ext import (
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
-LOG_CHAT_ID = -1003671787625
-POSTBACK_CHAT_ID = -1003712583340
+LOG_CHAT_ID = -1003671787625  # чат для логов
+POSTBACK_CHAT_ID = -1003712583340  # чат с постбеками
+PUSH_CHAT_ID = -1003889323542  # <-- ДОБАВЛЕНО: чат для пушей
 
 BASE_APP_URL = "https://aviatorbot.up.railway.app/"
 
 ID_PATTERN = re.compile(r"==(\d+)==")
-PUSH_PATTERN = re.compile(r"ПУШ\s*\((.*?)\)\s*\"(.*?)\"", re.IGNORECASE)
 
 user_status = {}
 USERS_FILE = "users.json"
 
 # ===========================
-# ЗАГРУЗКА И СОХРАНЕНИЕ
+# ЗАГРУЗКА И СОХРАНЕНИЕ СТАТУСОВ
 # ===========================
 
 def load_users():
@@ -57,7 +57,7 @@ def save_users():
         print(f"❌ Ошибка сохранения users.json: {e}")
 
 # ===========================
-# КЛИКАБЕЛЬНЫЙ ID
+# КЛИКАБЕЛЬНЫЙ ID (БЕЗ КАРТОЧКИ)
 # ===========================
 
 def clickable_user(user):
@@ -78,7 +78,7 @@ async def send_log(app: Application, text: str):
         print(f"Ошибка логирования: {e}")
 
 # ===========================
-# МЕНЮ
+# УНИВЕРСАЛЬНОЕ INLINE-МЕНЮ
 # ===========================
 
 def menu_keyboard(user_id: int):
@@ -115,6 +115,7 @@ def menu_keyboard(user_id: int):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_id = user.id
+
     user_status.setdefault(user_id, "new")
     save_users()
 
@@ -130,7 +131,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 # ===========================
-# INLINE-КНОПКИ
+# ОБРАБОТКА INLINE-КНОПОК
 # ===========================
 
 async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -140,6 +141,7 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     data = query.data
 
     await query.answer()
+
     status = user_status.get(user_id, "new")
 
     await send_log(
@@ -150,159 +152,110 @@ async def menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if data == "instruction":
         await query.edit_message_text(
             "1 - Connessione del bot:\n"
-            "Crea un nuovo account e attendi circa 1 minuto.\n"
-            "Poi effettua un deposito e attendi 2 minuti per la sincronizzazione.\n\n"
+            "Devi creare un nuovo account e attendere circa 1 minuto finché il bot lo rileva. "
+            "Poi effettua un deposito e attendi altri 2 minuti per la sincronizzazione.\n\n"
             "2 - Utilizzo del bot:\n"
-            "Quando inizia il round, premi Mostra.",
+            "Quando inizia il round, premi il pulsante Mostra.",
             reply_markup=menu_keyboard(user_id),
-        )
-
-    elif data == "connect":
-        if status == "new":
-            text = (
-                f"Crea un account.\n"
-                f"[CREA ACCOUNT](https://gembl.pro/click?o=780&a=1933&sub_id2={user_id})"
-            )
-        elif status == "registered":
-            text = (
-                f"✅ Account rilevato.\n"
-                f"[CONTINUA](https://gembl.pro/click?o=780&a=1933&sub_id2={user_id})"
-            )
-        else:
-            text = (
-                f"✅ Bot collegato.\n"
-                f"[APRI IL GIOCO](https://gembl.pro/click?o=780&a=1933&sub_id2={user_id})"
-            )
-
-        await query.edit_message_text(
-            text,
-            reply_markup=menu_keyboard(user_id),
-            parse_mode="Markdown"
         )
 
 # ===========================
-# ПОСТБЕК + PUSH
+# ОБРАБОТКА ПОСТБЕКОВ
 # ===========================
 
 async def postback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message = update.message
-    text = message.text.strip()
-
-    # ==============================
-    # 🔥 1. ОБРАБОТКА ПУШ КОМАНДЫ
-    # ==============================
-    if text.startswith("ПУШ"):
-        import re
-
-        match = re.search(r"ПУШ\s*\((.*?)\)\s*\"(.*?)\"", text)
-        if not match:
-            await context.bot.send_message(
-                chat_id=LOG_CHAT_ID,
-                text=f"❌ Неверный формат ПУШ:\n{text}"
-            )
-            return
-
-        ids_raw = match.group(1)
-        push_text = match.group(2)
-
-        user_ids = []
-        for uid in ids_raw.split(","):
-            uid = uid.strip()
-            if uid.isdigit():
-                user_ids.append(int(uid))
-
-        sent = 0
-        failed = 0
-
-        for user_id in user_ids:
-            try:
-                await context.bot.send_message(
-                    chat_id=user_id,
-                    text=push_text
-                )
-                sent += 1
-            except:
-                failed += 1
-
-        await context.bot.send_message(
-            chat_id=LOG_CHAT_ID,
-            text=(
-                f"📢 PUSH выполнен\n"
-                f"Отправлено: {sent}\n"
-                f"Ошибок: {failed}"
-            )
-        )
+    if update.effective_chat.id != POSTBACK_CHAT_ID:
         return
 
-    # ==============================
-    # 🔹 2. ОБЫЧНЫЕ ПОСТБЕКИ
-    # ==============================
-
-    import re
-    match = re.search(r"\d+", text)
+    text = update.message.text or ""
+    match = ID_PATTERN.search(text)
 
     if not match:
-        await context.bot.send_message(
-            chat_id=LOG_CHAT_ID,
-            text=f"⚠️ Постбек без понятного ID: {text}"
-        )
+        await send_log(context.application, f"⚠️ Постбек без понятного ID: {text}")
         return
 
-    user_id = int(match.group())
+    user_id = int(match.group(1))
+    user_status.setdefault(user_id, "new")
 
-    users = load_users()
-    user = users.get(str(user_id))
+    text_lower = text.lower()
 
-    if not user:
-        users[str(user_id)] = {
-            "registered": False,
-            "deposits": 0
-        }
-        user = users[str(user_id)]
+    if "registration" in text_lower or "reg" in text_lower:
+        user_status[user_id] = "registered"
+        save_users()
+        await send_log(context.application, f"📩 Регистрация для [{user_id}](tg://user?id={user_id})")
 
-    # REGISTRATION
-    if "Registration" in text:
-        user["registered"] = True
-        save_users(users)
+    elif "deposit" in text_lower or "amount" in text_lower:
+        user_status[user_id] = "deposited"
+        save_users()
+        await send_log(context.application, f"💰 Депозит для [{user_id}](tg://user?id={user_id})")
 
-        await context.bot.send_message(
-            chat_id=LOG_CHAT_ID,
-            text=f"✅ Регистрация: {user_id}"
-        )
-        return
-
-    # DEPOSIT
-    if "Deposit" in text:
-        user["deposits"] += 1
-        save_users(users)
-
-        await context.bot.send_message(
-            chat_id=LOG_CHAT_ID,
-            text=f"💰 Депозит: {user_id} | Всего: {user['deposits']}"
-        )
-        return
-
-    await context.bot.send_message(
-        chat_id=LOG_CHAT_ID,
-        text=f"⚠️ Неизвестный постбек: {text}"
-    )
 # ===========================
-# ЗАПУСК
+# PUSH HANDLER (ДОБАВЛЕНО)
+# ===========================
+
+async def push_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_chat.id != PUSH_CHAT_ID:
+        return
+
+    text = update.message.text or ""
+
+    if not text.startswith("ПУШ"):
+        return
+
+    match = re.search(r"ПУШ\s*\((.*?)\)\s*\"(.*?)\"", text)
+    if not match:
+        await send_log(context.application, f"❌ Неверный формат PUSH: {text}")
+        return
+
+    ids_raw = match.group(1)
+    push_text = match.group(2)
+
+    user_ids = []
+    for uid in ids_raw.split(","):
+        uid = uid.strip()
+        if uid.isdigit():
+            user_ids.append(int(uid))
+
+    sent = 0
+    failed = 0
+
+    for user_id in user_ids:
+        try:
+            await context.application.bot.send_message(
+                chat_id=user_id,
+                text=push_text
+            )
+            sent += 1
+        except Exception as e:
+            failed += 1
+
+    await send_log(
+        context.application,
+        f"📢 PUSH выполнен | Отправлено: {sent} | Ошибок: {failed}"
+    )
+
+# ===========================
+# ЗАПУСК БОТА
 # ===========================
 
 def main():
     print("🚀 Бот запускается...")
-
     load_users()
 
     app = Application.builder().token(BOT_TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(menu_callback))
+
     app.add_handler(
         MessageHandler(filters.Chat(POSTBACK_CHAT_ID) & filters.TEXT, postback_handler)
     )
 
+    app.add_handler(
+        MessageHandler(filters.Chat(PUSH_CHAT_ID) & filters.TEXT, push_handler)
+    )
+
+    print("✅ Bot started and running...")
     app.run_polling()
 
 if __name__ == "__main__":
