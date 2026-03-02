@@ -83,12 +83,12 @@ export default function Screen3({ onPasswordSuccess, onModalClose }: Screen3Prop
           <p className="text-center text-white/70 text-xs font-light">
             Se hai qualche domanda -{' '}
             <a
-              href="https://t.me/Dante_Valdes?text=Ciao!%20Ho%20una%20domanda%20sul%20bot"
+              href="https://t.me/admin?text=Ciao!%20Ho%20una%20domanda%20sul%20bot"
               target="_blank"
               rel="noopener noreferrer"
               className="text-yellow-400 hover:text-yellow-500 transition-colors"
             >
-              @Dante_Valdes
+              @admin
             </a>
           </p>
         </div>
