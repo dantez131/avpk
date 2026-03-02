@@ -87,12 +87,12 @@ export default function Screen2({ onPrecisionUpgradeClick }: Screen2Props) {
           <p className="text-center text-white/70 text-xs font-light">
             To get the password, write to -{' '}
             <a
-              href="https://t.me/Dante_Valdes?text=Hi!%20I%20need%20password%20for%20100%bot"
+              href="https://t.me/admin?text=Hi!%20I%20need%20password%20for%20100%bot"
               target="_blank"
               rel="noopener noreferrer"
               className="text-yellow-400 hover:text-yellow-500 transition-colors"
             >
-              @Dante_Valdes
+              @admin
             </a>
           </p>
         </div>
